@@ -73,22 +73,29 @@ theorem adder_32: ∀ (a b: BitVec 16),
   simp [adder, full_adder]
   bv_decide
 
-structure Simulator
+#check Std.HashMap
 
-def s: Simulator := {}
+structure Simulator where
+  store : Std.HashMap String Nat
+
+def s: Simulator := { store := Std.HashMap.emptyWithCapacity 10 }
 #check s
+def ss: Simulator := { store := s.store.insert "pc" 2 }
+#eval (ss.store.get! "pc")
 
 class Component (c: Type) where
-  eval : c → Simulator → Simulator
+  eval : c → Simulator
 
 #check Component
 #print Component
 
 structure CompAdder
 
-def adder_eval (_c: CompAdder) (s: Simulator) : Simulator :=
+def adder_eval (_c: CompAdder) (_s: Simulator) :=
   dbg_trace "comp_adder"
-  s
+  ()
+
+#check adder_eval
 
 instance : Component CompAdder where
   eval := adder_eval
@@ -98,3 +105,13 @@ instance : Component CompAdder where
 def ca: CompAdder := {}
 
 #eval (Component.eval ca s)
+
+structure PcPlus4 {w: Nat} where
+  pc_out: (BitVec w) → BitVec w
+
+-- def pc_plus4_eval (w: Nat) (_c: (PcPlus4 w)) (s: Simulator) : Simulator :=
+--   dbg_trace "comp_pw_plus4"
+--   s
+
+-- instance : Component PcPlus4 where
+--   eval :=
