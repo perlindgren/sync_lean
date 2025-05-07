@@ -78,15 +78,23 @@ structure Simulator
 def s: Simulator := {}
 #check s
 
-class Component where
-  eval : Simulator -> Simulator
+class Component (c: Type) where
+  eval : c → Simulator → Simulator
 
-#check Component.eval
+#check Component
+#print Component
 
 structure CompAdder
 
-def adder_eval (s: Simulator) : Simulator :=
+def adder_eval (_c: CompAdder) (s: Simulator) : Simulator :=
+  dbg_trace "comp_adder"
   s
 
 instance : Component CompAdder where
   eval := adder_eval
+
+#check adder_eval
+
+def ca: CompAdder := {}
+
+#eval (Component.eval ca s)
