@@ -78,36 +78,76 @@ theorem adder_32: ∀ (a b: BitVec 16),
 structure Simulator where
   store : Std.HashMap String Nat
 
+structure Resisters where
+  components : List (Simulator -> Simulator)
+
 def s: Simulator := { store := Std.HashMap.emptyWithCapacity 10 }
 #check s
 def ss: Simulator := { store := s.store.insert "pc" 2 }
-#eval (ss.store.get! "pc")
+#eval (ss.store.getD "pc" 0)
 
-class Component (c: Type) where
-  eval : c → Simulator
+def get (id: String) (s : Simulator) : Nat :=
+  s.store.getD id 0
 
-#check Component
-#print Component
+#check get
 
-structure CompAdder
+namespace PcPlus4
+def next_pc (a : (Simulator -> Nat)) (s: Simulator): Nat :=
+  dbg_trace "next_pc"
+  (a s) + 4
+end PcPlus4
 
-def adder_eval (_c: CompAdder) (_s: Simulator) :=
-  dbg_trace "comp_adder"
-  ()
+def pc_plus4 := PcPlus4.next_pc (get "pc")
 
-#check adder_eval
+#eval (pc_plus4 ss)
 
-instance : Component CompAdder where
-  eval := adder_eval
+def reg (f: Simulator -> Simulator) (s: Simulator) : Simulator :=
+  dbg_trace "reg"
+  f s
 
-#check adder_eval
+def pc_reg (s: Simulator) : Simulator :=
+  dbg_trace "pc_reg"
+  { store:= s.store.insert "pc" (pc_plus4 s) }
 
-def ca: CompAdder := {}
+#eval (pc_reg ss)
 
-#eval (Component.eval ca s)
 
-structure PcPlus4 {w: Nat} where
-  pc_out: (BitVec w) → BitVec w
+
+
+
+
+
+def plus  (a b : (Simulator -> Nat)) (s: Simulator): Nat :=
+  (a s) + (b s)
+
+
+
+
+-- class Component (c: Type) where
+--   eval : c → Simulator
+
+-- #check Component
+-- #print Component
+
+-- structure CompAdder
+
+-- def adder_eval (_c: CompAdder) (_s: Simulator) :=
+--   dbg_trace "comp_adder"
+--   ()
+
+-- #check adder_eval
+
+-- instance : Component CompAdder where
+--   eval := adder_eval
+
+-- #check adder_eval
+
+-- def ca: CompAdder := {}
+
+-- #eval (Component.eval ca s)
+
+-- structure PcPlus4 {w: Nat} where
+--   pc_out: (BitVec w) → BitVec w
 
 -- def pc_plus4_eval (w: Nat) (_c: (PcPlus4 w)) (s: Simulator) : Simulator :=
 --   dbg_trace "comp_pw_plus4"
