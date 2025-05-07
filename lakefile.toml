@@ -1,0 +1,9 @@
+name = "sync_lim"
+version = "0.1.0"
+defaultTargets = ["sync_lean"]
+
+[[lean_lib]]
+name = "SyncLean"
+
+
+
