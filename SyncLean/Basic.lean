@@ -72,3 +72,21 @@ theorem adder_32: ∀ (a b: BitVec 16),
     (adder a b false 16).snd = a + b := by
   simp [adder, full_adder]
   bv_decide
+
+structure Simulator
+
+def s: Simulator := {}
+#check s
+
+class Component where
+  eval : Simulator -> Simulator
+
+#check Component.eval
+
+structure CompAdder
+
+def adder_eval (s: Simulator) : Simulator :=
+  s
+
+instance : Component CompAdder where
+  eval := adder_eval
