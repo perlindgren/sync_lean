@@ -22,7 +22,7 @@ Exactly how the type classes and simulator store should look like is not yet cle
 
 ## Components
 
-For now only a simple generic multiplexer and a generic adder has bin implemented. 
+For now only a simple generic multiplexer and a generic adder has been implemented. 
 
 ### Mux
 
