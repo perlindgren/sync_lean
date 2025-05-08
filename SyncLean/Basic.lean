@@ -74,42 +74,77 @@ theorem adder_32: ∀ (a b: BitVec 16),
   bv_decide
 
 #check Std.HashMap
+open Std
 
-structure Simulator where
-  store : Std.HashMap String Nat
+abbrev State := HashMap String Nat
+abbrev Registers := List (State -> State)
 
-structure Resisters where
-  components : List (Simulator -> Simulator)
+def s : State := HashMap.emptyWithCapacity 10
+def ss := s.insert "pc" 0
 
-def s: Simulator := { store := Std.HashMap.emptyWithCapacity 10 }
-#check s
-def ss: Simulator := { store := s.store.insert "pc" 2 }
-#eval (ss.store.getD "pc" 0)
-
-def get (id: String) (s : Simulator) : Nat :=
-  s.store.getD id 0
-
-#check get
+-- get a register by name
+def get (id: String) (s : State) : Nat :=
+  s.getD id 0
 
 namespace PcPlus4
-def next_pc (a : (Simulator -> Nat)) (s: Simulator): Nat :=
+def next_pc (a : State -> Nat) (s: State): Nat :=
   dbg_trace "next_pc"
   (a s) + 4
 end PcPlus4
 
+namespace InstrMem
+def instr (pc: State -> Nat) (s: State): Nat :=
+  let addr:= match pc s with
+  | 0x00 => 0x100
+  | _    => 0x104
+  dbg_trace ("instr " ++ ((16).toDigits (pc s)).toString ++ ((16).toDigits (addr)).toString)
+  addr
+end InstrMem
+
+namespace RegFile
+
+def data_a (reg_a: State -> BitVec 5) (s: State): Nat :=
+  0
+def data_b (reg_b: State -> BitVec 5) (s: State): Nat :=
+  0
+
+end RegFile
+
+def split_nat : BitVec 32 := 0
+def uteh : BitVec 5 := split_nat[05]
+
+
+-- instance
 def pc_plus4 := PcPlus4.next_pc (get "pc")
+def i_mem := InstrMem.instr (get "pc")
+def data_a := i_mem
 
 #eval (pc_plus4 ss)
+#eval (i_mem ss)
 
-def reg (f: Simulator -> Simulator) (s: Simulator) : Simulator :=
+
+def reg (f: State -> State) (s: State) : State :=
   dbg_trace "reg"
   f s
 
-def pc_reg (s: Simulator) : Simulator :=
+def pc_reg (s: State) : State :=
   dbg_trace "pc_reg"
-  { store:= s.store.insert "pc" (pc_plus4 s) }
+  s.insert "pc" (pc_plus4 s)
+def instr_reg (s: State) : State :=
+  dbg_trace "instr_reg"
+  s.insert "instr" (i_mem s)
+
 
 #eval (pc_reg ss)
+#eval (instr_reg ss)
+
+def clock (regs: Registers) (s: State) : State :=
+  match regs with
+  | [] => s
+  | r::rl => clock rl (r s)
+
+def regs : Registers := [pc_reg]
+#eval (clock regs ss)
 
 
 
